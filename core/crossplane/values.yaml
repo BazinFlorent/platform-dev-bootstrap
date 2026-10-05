@@ -1,0 +1,23 @@
+# Crossplane platform-owned Helm overrides.
+#
+# Keep this file intentionally small.
+# Do not copy the complete upstream values.yaml.
+# Any value added here becomes a configuration decision owned by the platform.
+
+replicas: 1
+
+resourcesCrossplane:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+resourcesRBACManager:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

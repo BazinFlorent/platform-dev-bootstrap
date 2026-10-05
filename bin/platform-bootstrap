@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd)"
+BOOTSTRAP_HOME="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+export PLATFORM_BOOTSTRAP_CALLER_DIR="${PLATFORM_BOOTSTRAP_CALLER_DIR:-$(pwd)}"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  platform-bootstrap [options] <command>
+
+Options:
+  -n, --name <name>   Nom logique de l'instance de bootstrap
+  -h, --help          Affiche cette aide
+
+Examples:
+  platform-bootstrap doctor
+  platform-bootstrap -n test-platform bootstrap
+  platform-bootstrap --name test-platform verify
+  platform-bootstrap -n test-platform destroy
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--name)
+      if [[ -z "${2:-}" ]]; then
+        echo "ERROR: $1 requires a value" >&2
+        exit 1
+      fi
+
+      export PLATFORM_BOOTSTRAP_NAME="$2"
+      shift 2
+      ;;
+
+    -h|--help)
+      usage
+      exit 0
+      ;;
+
+    --)
+      shift
+      break
+      ;;
+
+    -*)
+      echo "ERROR: unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+
+    *)
+      break
+      ;;
+  esac
+done
+
+if [[ $# -eq 0 ]]; then
+  usage
+  exit 1
+fi
+
+exec make \
+  -C "${BOOTSTRAP_HOME}" \
+  "$@"

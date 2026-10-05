@@ -1,0 +1,6 @@
+# Generated kind configuration
+/bootstrap/kind/kind.yaml
+# Crossplane project build artifacts
+**/_output/
+# Local development runtime
+.local/
