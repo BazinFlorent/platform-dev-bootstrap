@@ -26,58 +26,58 @@ CORE_DIR := $(CURDIR)/core
 	list
 
 doctor:
-	@$(MAKE) -C $(CORE_DIR) doctor
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) doctor
 
 check-ports:
-	@$(MAKE) -C $(CORE_DIR) check-ports
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) check-ports
 
 bootstrap:
-	@$(MAKE) -C $(CORE_DIR) bootstrap
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) bootstrap
 
 verify:
-	@$(MAKE) -C $(CORE_DIR) verify
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) verify
 
 destroy:
-	@$(MAKE) -C $(CORE_DIR) destroy
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) destroy
 
 kind-config:
-	@$(MAKE) -C $(CORE_DIR) kind-config
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) kind-config
 
 kind-create:
-	@$(MAKE) -C $(CORE_DIR) kind-create
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) kind-create
 
 kind-status:
-	@$(MAKE) -C $(CORE_DIR) kind-status
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) kind-status
 
 kind-delete:
-	@$(MAKE) -C $(CORE_DIR) kind-delete
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) kind-delete
 
 registry-create:
-	@$(MAKE) -C $(CORE_DIR) registry-create
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) registry-create
 
 registry-delete:
-	@$(MAKE) -C $(CORE_DIR) registry-delete
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) registry-delete
 
 registry-configure-kind:
-	@$(MAKE) -C $(CORE_DIR) registry-configure-kind
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) registry-configure-kind
 
 registry-verify:
-	@$(MAKE) -C $(CORE_DIR) registry-verify
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) registry-verify
 
 crossplane-install:
-	@$(MAKE) -C $(CORE_DIR) crossplane-install
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) crossplane-install
 
 crossplane-verify:
-	@$(MAKE) -C $(CORE_DIR) crossplane-verify
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) crossplane-verify
 
 crossplane-status:
-	@$(MAKE) -C $(CORE_DIR) crossplane-status
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) crossplane-status
 
 crossplane-uninstall:
-	@$(MAKE) -C $(CORE_DIR) crossplane-uninstall
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) crossplane-uninstall
 
 instance-save:
-	@$(MAKE) -C $(CORE_DIR) instance-save
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) instance-save
 
 list:
-	@$(MAKE) -C $(CORE_DIR) list
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) list

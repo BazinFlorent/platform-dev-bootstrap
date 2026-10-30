@@ -89,5 +89,6 @@ if [[ -n "${PLATFORM_BOOTSTRAP_NAME:-}" ]]; then
 fi
 
 exec make \
+  --no-print-directory \
   -C "${BOOTSTRAP_HOME}" \
   "$@"
