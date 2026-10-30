@@ -22,7 +22,8 @@ CORE_DIR := $(CURDIR)/core
 	crossplane-verify \
 	crossplane-status \
 	crossplane-uninstall \
-	instance-save
+	instance-save \
+	list
 
 doctor:
 	@$(MAKE) -C $(CORE_DIR) doctor
@@ -77,3 +78,6 @@ crossplane-uninstall:
 
 instance-save:
 	@$(MAKE) -C $(CORE_DIR) instance-save
+
+list:
+	@$(MAKE) -C $(CORE_DIR) list

@@ -71,7 +71,8 @@ CROSSPLANE_SCRIPTS := $(CROSSPLANE_DIR)/scripts
 	bootstrap \
 	verify \
 	destroy \
-	instance-save
+	instance-save \
+	list
 
 # -----------------------------------------------------------------------------
 # Prérequis
@@ -173,3 +174,10 @@ instance-save:
 
 destroy:
 	@$(BASH) $(SCRIPTS_DIR)/destroy.sh
+
+# -----------------------------------------------------------------------------
+# Lister les instances
+# -----------------------------------------------------------------------------
+
+list:
+	@$(BASH) $(SCRIPTS_DIR)/list.sh

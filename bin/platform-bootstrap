@@ -17,6 +17,7 @@ Options:
   -h, --help          Affiche cette aide
 
 Examples:
+  platform-bootstrap list
   platform-bootstrap doctor
   platform-bootstrap -n my-platform bootstrap
   platform-bootstrap --name my-platform verify
