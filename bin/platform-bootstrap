@@ -18,9 +18,9 @@ Options:
 
 Examples:
   platform-bootstrap doctor
-  platform-bootstrap -n test-platform bootstrap
-  platform-bootstrap --name test-platform verify
-  platform-bootstrap -n test-platform destroy
+  platform-bootstrap -n my-platform bootstrap
+  platform-bootstrap --name my-platform verify
+  platform-bootstrap -n my-platform destroy
 EOF
 }
 
@@ -61,6 +61,24 @@ done
 if [[ $# -eq 0 ]]; then
   usage
   exit 1
+fi
+
+STATE_ROOT="${PLATFORM_BOOTSTRAP_STATE_ROOT:-${XDG_STATE_HOME:-${HOME}/.local/state}/platform-bootstrap}"
+
+if [[ -n "${PLATFORM_BOOTSTRAP_NAME:-}" ]]; then
+  INSTANCE_CONFIG="${STATE_ROOT}/${PLATFORM_BOOTSTRAP_NAME}/instance.env"
+
+  if [[ -f "${INSTANCE_CONFIG}" ]]; then
+    while IFS='=' read -r key value; do
+      [[ -z "${key}" || "${key}" == \#* ]] && continue
+
+      # Une variable explicitement définie reste prioritaire.
+      if [[ -z "${!key+x}" ]]; then
+        printf -v "${key}" '%s' "${value}"
+        export "${key}"
+      fi
+    done < "${INSTANCE_CONFIG}"
+  fi
 fi
 
 exec make \

@@ -70,7 +70,8 @@ CROSSPLANE_SCRIPTS := $(CROSSPLANE_DIR)/scripts
 	crossplane-uninstall \
 	bootstrap \
 	verify \
-	destroy
+	destroy \
+	instance-save
 
 # -----------------------------------------------------------------------------
 # Prérequis
@@ -143,6 +144,7 @@ crossplane-uninstall:
 
 bootstrap: \
 	doctor \
+	instance-save \
 	kind-create \
 	registry-create \
 	registry-configure-kind \
@@ -157,6 +159,13 @@ bootstrap: \
 
 verify:
 	@$(BASH) $(SCRIPTS_DIR)/verify.sh
+
+# -----------------------------------------------------------------------------
+# Configuration de l'instance
+# -----------------------------------------------------------------------------
+
+instance-save:
+	@$(BASH) $(SCRIPTS_DIR)/instance-save.sh
 
 # -----------------------------------------------------------------------------
 # Destruction

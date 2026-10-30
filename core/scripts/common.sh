@@ -33,6 +33,9 @@ KIND_STORAGE="${KIND_LOCAL_ROOT}/storage"
 
 KIND_CONTEXT="kind-${KIND_CLUSTER}"
 
+# Config d'instance
+INSTANCE_CONFIG="${PLATFORM_BOOTSTRAP_STATE_DIR}/instance.env"
+
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
     echo "ERROR: commande requise introuvable: $1" >&2

@@ -30,4 +30,7 @@ rm -f "${KIND_CONFIG}"
   "${REGISTRY_ROOT}" \
   "${REGISTRY_IMAGE}"
 
+rm -f "${INSTANCE_CONFIG}"
+rmdir "${PLATFORM_BOOTSTRAP_STATE_DIR}" 2>/dev/null || true
+
 echo "==> Environnement bootstrap supprimé"
