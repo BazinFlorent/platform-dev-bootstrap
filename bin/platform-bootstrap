@@ -64,6 +64,12 @@ if [[ $# -eq 0 ]]; then
   exit 1
 fi
 
+if [[ $# -gt 1 ]]; then
+  echo "ERROR: unexpected argument: ${2}" >&2
+  usage >&2
+  exit 1
+fi
+
 STATE_ROOT="${PLATFORM_BOOTSTRAP_STATE_ROOT:-${XDG_STATE_HOME:-${HOME}/.local/state}/platform-bootstrap}"
 
 if [[ -n "${PLATFORM_BOOTSTRAP_NAME:-}" ]]; then
