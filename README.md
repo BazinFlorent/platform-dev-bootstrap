@@ -26,31 +26,122 @@ L'extension `ai` ajoute :
 - NVIDIA Device Plugin ;
 - l'exposition de la ressource Kubernetes `nvidia.com/gpu`.
 
-## Installation de la CLI
+## Installation
 
-Le repository expose la commande :
+### Installation depuis une release
 
-```bash
-platform-bootstrap
+Télécharger l'archive correspondant à la version souhaitée depuis les releases GitHub.
+
+Exemple :
+
+```text
+platform-bootstrap-v0.4.0-linux.tar.gz
 ```
 
-Depuis le repository cloné :
+Extraire l'archive :
 
 ```bash
-mkdir -p ~/.local/bin
-
-ln -sf \
-  "$(pwd)/bin/platform-bootstrap" \
-  ~/.local/bin/platform-bootstrap
+tar -xzf platform-bootstrap-v0.4.0-linux.tar.gz
+cd platform-bootstrap-v0.4.0-linux
 ```
 
-Vérifier que `~/.local/bin` est présent dans le `PATH` :
+Installer :
+
+```bash
+./install.sh
+```
+
+Par défaut, l'installation utilise le préfixe :
+
+```text
+~/.local
+```
+
+Les principaux fichiers sont installés sous :
+
+```text
+~/.local/
+├── bin/
+│   ├── platform-bootstrap
+│   └── platform-bootstrap-uninstall
+├── lib/
+│   └── platform-bootstrap/
+└── share/
+    └── bash-completion/
+        └── completions/
+            └── platform-bootstrap
+```
+
+Une fois l'installation terminée, le dossier extrait peut être supprimé.
+
+Vérifier l'installation :
 
 ```bash
 which platform-bootstrap
+platform-bootstrap --help
 ```
 
-La commande peut ensuite être appelée depuis n'importe quel dossier.
+La commande peut ensuite être appelée depuis n'importe quel repository consommateur.
+
+### Autocomplétion Bash
+
+L'installateur déploie automatiquement l'autocomplétion Bash.
+
+Dans un nouveau terminal, il est possible par exemple de compléter :
+
+```text
+platform-bootstrap boo<TAB>
+```
+
+ou :
+
+```text
+platform-bootstrap --reg<TAB>
+```
+
+Les instances existantes peuvent également être proposées après :
+
+```text
+platform-bootstrap -n <TAB>
+```
+
+L'autocomplétion nécessite que `bash-completion` soit installé et chargé dans l'environnement.
+
+### Désinstallation
+
+La désinstallation reste disponible même après suppression de l'archive et du dossier extrait :
+
+```bash
+platform-bootstrap-uninstall
+```
+
+Cette commande supprime :
+
+- la CLI installée ;
+- les fichiers de `platform-bootstrap` sous `~/.local/lib` ;
+- l'autocomplétion Bash ;
+- la commande de désinstallation elle-même.
+
+Elle ne supprime pas automatiquement les instances Kubernetes existantes.
+
+Pour supprimer une instance avant de désinstaller l'outil :
+
+```bash
+platform-bootstrap -n my-platform destroy
+platform-bootstrap-uninstall
+```
+
+### Installation depuis les sources
+
+Pour développer ou modifier `platform-bootstrap`, le repository peut également être cloné puis installé directement :
+
+```bash
+git clone <repository>
+cd platform-bootstrap
+./packaging/install.sh
+```
+
+L'installation utilise le même layout sous `~/.local` que l'installation depuis une release.
 
 ## Usage rapide
 
@@ -119,7 +210,7 @@ registry DNS      : registry.my-platform.local
 state runtime     : ~/.local/state/platform-bootstrap/my-platform/
 ```
 
-Les variables peuvent être surchargées individuellement si nécessaire.
+Les paramètres peuvent être surchargés individuellement si nécessaire.
 
 ## Profils d'instance
 
@@ -143,7 +234,7 @@ Le profil est notamment utilisé lors du cycle de vie de l'instance afin d'appli
 
 ## Ports et configuration
 
-Les ports sont configurables par variables d'environnement :
+Les ports peuvent être fournis directement à la CLI lors du bootstrap :
 
 ```bash
 platform-bootstrap \
@@ -154,8 +245,31 @@ platform-bootstrap \
   bootstrap
 ```
 
-Les ports peuvent également être fournis via les variables d'environnement
-KIND_HTTP_PORT, KIND_HTTPS_PORT et REGISTRY_PORT.
+Les mêmes options sont disponibles avec :
+
+```bash
+platform-bootstrap \
+  -n my-platform \
+  --http-port 8080 \
+  --https-port 8443 \
+  --registry-port 5001 \
+  bootstrap-ai
+```
+
+Les options de ports s'appliquent uniquement aux commandes :
+
+```text
+bootstrap
+bootstrap-ai
+```
+
+Les ports peuvent également être fournis via les variables d'environnement :
+
+```text
+KIND_HTTP_PORT
+KIND_HTTPS_PORT
+REGISTRY_PORT
+```
 
 Valeurs par défaut :
 
@@ -178,11 +292,13 @@ Les valeurs effectives utilisées lors de la création d'une instance sont persi
 La précédence de configuration est :
 
 ```text
-variable explicitement fournie à la commande
+arguments CLI
+        >
+variables d'environnement
         >
 configuration persistée dans instance.env
         >
-valeur par défaut
+valeurs par défaut
 ```
 
 Par exemple, si l'instance utilise le port registry `5001` :
@@ -191,9 +307,9 @@ Par exemple, si l'instance utilise le port registry `5001` :
 platform-bootstrap -n my-platform registry-verify
 ```
 
-réutilise automatiquement cette valeur.
+réutilise automatiquement cette valeur depuis `instance.env`.
 
-Un override reste néanmoins possible :
+Un override par variable d'environnement reste possible pour les commandes ciblées :
 
 ```bash
 REGISTRY_PORT=5010 \
@@ -309,6 +425,39 @@ Cela permet de recréer le container registry sans provoquer une rotation de cer
 
 Les commandes AI ciblées sont principalement destinées au diagnostic, au développement du bootstrap ou à l'exécution manuelle d'une étape précise.
 
+## Packaging
+
+Une archive distribuable peut être générée depuis le repository avec :
+
+```bash
+make package VERSION=v0.4.0
+```
+
+Le package est produit sous :
+
+```text
+dist/platform-bootstrap-v0.4.0-linux.tar.gz
+```
+
+Le répertoire `dist/` contient uniquement des artefacts générés et n'est pas versionné dans Git.
+
+L'archive contient notamment :
+
+```text
+platform-bootstrap-v0.4.0-linux/
+├── install.sh
+├── uninstall.sh
+├── Makefile
+├── README.md
+├── bin/
+├── core/
+├── ai/
+├── completion/
+└── docs/
+```
+
+Le package est conçu pour être autonome : après `./install.sh`, le dossier extrait peut être supprimé.
+
 ## Structure du repository
 
 ```text
@@ -317,6 +466,11 @@ Les commandes AI ciblées sont principalement destinées au diagnostic, au déve
 ├── README.md
 ├── bin/
 │   └── platform-bootstrap
+├── completion/
+│   └── platform-bootstrap.bash
+├── packaging/
+│   ├── install.sh
+│   └── uninstall.sh
 ├── core/
 │   ├── Makefile
 │   ├── README.md
@@ -327,7 +481,7 @@ Les commandes AI ciblées sont principalement destinées au diagnostic, au déve
 │   └── scripts/
 ├── ai/
 │   ├── Makefile
-|   ├── README.md
+│   ├── README.md
 │   ├── versions.env
 │   ├── kind/
 │   └── scripts/
