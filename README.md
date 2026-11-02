@@ -146,11 +146,16 @@ Le profil est notamment utilisé lors du cycle de vie de l'instance afin d'appli
 Les ports sont configurables par variables d'environnement :
 
 ```bash
-KIND_HTTP_PORT=8080 \
-KIND_HTTPS_PORT=8443 \
-REGISTRY_PORT=5001 \
-platform-bootstrap -n my-platform bootstrap
+platform-bootstrap \
+  -n my-platform \
+  --http-port 8080 \
+  --https-port 8443 \
+  --registry-port 5001 \
+  bootstrap
 ```
+
+Les ports peuvent également être fournis via les variables d'environnement
+KIND_HTTP_PORT, KIND_HTTPS_PORT et REGISTRY_PORT.
 
 Valeurs par défaut :
 

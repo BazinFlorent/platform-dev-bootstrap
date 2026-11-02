@@ -173,11 +173,17 @@ state           : ~/.local/state/platform-bootstrap/my-platform/
 Si plusieurs instances doivent tourner simultanément :
 
 ```bash
-KIND_HTTP_PORT=8080 \
-KIND_HTTPS_PORT=8443 \
-REGISTRY_PORT=5001 \
-platform-bootstrap -n my-platform bootstrap
+platform-bootstrap \
+  -n my-platform \
+  --http-port 8080 \
+  --https-port 8443 \
+  --registry-port 5001 \
+  bootstrap
 ```
+
+Ces options s'appliquent uniquement aux commandes bootstrap et bootstrap-ai.
+Les valeurs choisies sont enregistrées dans instance.env puis réutilisées
+automatiquement par verify, destroy et les commandes ciblées.
 
 Le state de chaque instance est isolé sous :
 
