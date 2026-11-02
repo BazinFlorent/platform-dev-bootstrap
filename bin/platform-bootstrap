@@ -13,33 +13,69 @@ Usage:
   platform-bootstrap [options] <command>
 
 Options:
-  -n, --name <name>   Nom logique de l'instance de bootstrap
-  -h, --help          Affiche cette aide
+  -n, --name <name>          Nom logique de l'instance de bootstrap
+      --http-port <port>     Port HTTP du cluster Kind
+      --https-port <port>    Port HTTPS du cluster Kind
+      --registry-port <port> Port du registry OCI local
+  -h, --help                 Affiche cette aide
+
+Port options:
+  Les options --http-port, --https-port et --registry-port
+  s'appliquent uniquement aux commandes bootstrap et bootstrap-ai.
 
 Main commands:
-  list                Liste les instances connues
-  doctor              Vérifie les prérequis du bootstrap standard
-  bootstrap           Crée une instance standard
-  verify              Vérifie une instance standard
-  destroy             Supprime une instance et ses ressources associées
+  list                       Liste les instances connues
+  doctor                     Vérifie les prérequis du bootstrap standard
+  bootstrap                  Crée une instance standard
+  verify                     Vérifie une instance standard
+  destroy                    Supprime une instance et ses ressources associées
 
 AI commands:
-  doctor-ai            Vérifie les prérequis GPU
-  bootstrap-ai         Crée une instance avec support GPU NVIDIA
-  verify-ai            Vérifie l'exposition du GPU dans Kubernetes
-  test-ai              Lance un workload Kubernetes consommant un GPU
+  doctor-ai                  Vérifie les prérequis GPU
+  bootstrap-ai               Crée une instance avec support GPU NVIDIA
+  verify-ai                  Vérifie l'exposition du GPU dans Kubernetes
+  test-ai                    Lance un workload Kubernetes consommant un GPU
 
 Examples:
   platform-bootstrap list
   platform-bootstrap doctor
+
   platform-bootstrap -n my-platform bootstrap
-  platform-bootstrap -n my-platform bootstrap-ai
+
+  platform-bootstrap \
+    -n my-platform \
+    --http-port 8080 \
+    --https-port 8443 \
+    --registry-port 5001 \
+    bootstrap
+
+  platform-bootstrap \
+    -n my-platform \
+    --http-port 8080 \
+    --https-port 8443 \
+    --registry-port 5001 \
+    bootstrap-ai
+
   platform-bootstrap -n my-platform verify
   platform-bootstrap -n my-platform verify-ai
   platform-bootstrap -n my-platform test-ai
   platform-bootstrap -n my-platform destroy
 EOF
 }
+
+validate_port() {
+  local option="$1"
+  local value="$2"
+
+  if ! [[ "${value}" =~ ^[0-9]+$ ]] \
+    || (( value < 1 || value > 65535 )); then
+
+    echo "ERROR: invalid port for ${option}: ${value}" >&2
+    exit 1
+  fi
+}
+
+PORT_OPTIONS_USED=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -50,6 +86,45 @@ while [[ $# -gt 0 ]]; do
       fi
 
       export PLATFORM_BOOTSTRAP_NAME="$2"
+      shift 2
+      ;;
+
+    --http-port)
+      if [[ -z "${2:-}" ]]; then
+        echo "ERROR: $1 requires a value" >&2
+        exit 1
+      fi
+
+      validate_port "$1" "$2"
+
+      export KIND_HTTP_PORT="$2"
+      PORT_OPTIONS_USED=true
+      shift 2
+      ;;
+
+    --https-port)
+      if [[ -z "${2:-}" ]]; then
+        echo "ERROR: $1 requires a value" >&2
+        exit 1
+      fi
+
+      validate_port "$1" "$2"
+
+      export KIND_HTTPS_PORT="$2"
+      PORT_OPTIONS_USED=true
+      shift 2
+      ;;
+
+    --registry-port)
+      if [[ -z "${2:-}" ]]; then
+        echo "ERROR: $1 requires a value" >&2
+        exit 1
+      fi
+
+      validate_port "$1" "$2"
+
+      export REGISTRY_PORT="$2"
+      PORT_OPTIONS_USED=true
       shift 2
       ;;
 
@@ -83,13 +158,26 @@ fi
 COMMAND="$1"
 shift
 
+# Les options de ports sont uniquement destinées à la création d'une instance.
+if [[ "${PORT_OPTIONS_USED}" == "true" ]]; then
+  case "${COMMAND}" in
+    bootstrap|bootstrap-ai)
+      ;;
+    *)
+      echo "ERROR: port options are only supported by bootstrap and bootstrap-ai" >&2
+      exit 1
+      ;;
+  esac
+fi
+
 # -----------------------------------------------------------------------------
 # Chargement de la configuration persistée de l'instance
 #
 # Ordre de précédence :
-#   1. variables explicitement fournies dans l'environnement
-#   2. instance.env
-#   3. valeurs par défaut chargées ensuite par le core
+#   1. arguments explicitement fournis à la CLI
+#   2. variables explicitement fournies dans l'environnement
+#   3. instance.env
+#   4. valeurs par défaut chargées ensuite par le core
 # -----------------------------------------------------------------------------
 
 STATE_ROOT="${PLATFORM_BOOTSTRAP_STATE_ROOT:-${XDG_STATE_HOME:-${HOME}/.local/state}/platform-bootstrap}"
@@ -101,7 +189,7 @@ if [[ -n "${PLATFORM_BOOTSTRAP_NAME:-}" ]]; then
     while IFS='=' read -r key value; do
       [[ -z "${key}" || "${key}" == \#* ]] && continue
 
-      # Une variable explicitement définie reste prioritaire.
+      # Une variable déjà définie reste prioritaire.
       if [[ -z "${!key+x}" ]]; then
         printf -v "${key}" '%s' "${value}"
         export "${key}"
