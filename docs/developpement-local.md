@@ -542,3 +542,38 @@ Les tests unitaires doivent rester rapides et indépendants du cluster.
 Les tests nécessitant Kubernetes, Crossplane ou le registry OCI relèvent des tests d'intégration.
 
 Les tests nécessitant le runtime réel et l'inférence relèvent des tests end-to-end.
+
+## Workloads GPU
+
+Avec un bootstrap AI, le cluster contient un worker dédié au GPU NVIDIA.
+
+Les workloads nécessitant un GPU doivent demander explicitement la ressource Kubernetes :
+
+```yaml
+resources:
+  limits:
+    nvidia.com/gpu: 1
+```
+
+Le worker GPU porte également le label :
+
+```text
+nvidia.com/gpu.present=true
+```
+
+Ce label peut être utilisé avec un `nodeSelector` ou une affinité de node lorsqu'un placement explicite sur le worker GPU est nécessaire.
+
+```yaml
+spec:
+  nodeSelector:
+    nvidia.com/gpu.present: "true"
+```
+
+Le bootstrap fournit :
+
+```bash
+platform-bootstrap -n <instance> verify-ai
+platform-bootstrap -n <instance> test-ai
+```
+
+pour vérifier respectivement l'exposition du GPU et son utilisation réelle par un workload Kubernetes.
