@@ -6,10 +6,10 @@ Le bootstrap n'est pas embarqué dans le repository applicatif. Il est installé
 
 ## 1. Vue d'ensemble
 
-Exemple avec un projet consommateur nommé `agentic-platform` :
+Exemple avec un projet consommateur nommé `my-platform` :
 
 ```text
-agentic-platform/
+my-platform/
 ├── platform/
 ├── components/
 ├── release/
@@ -26,10 +26,10 @@ platform-bootstrap/
 └── ai/
 ```
 
-Le développeur travaille depuis `agentic-platform` et appelle simplement :
+Le développeur travaille depuis `my-platform` et appelle simplement :
 
 ```bash
-platform-bootstrap -n agentic-platform bootstrap
+platform-bootstrap -n my-platform bootstrap
 ```
 
 ## 2. Architecture locale
@@ -115,31 +115,57 @@ test fonctionnel réel
 Depuis le repository consommateur :
 
 ```bash
-cd ~/agentic-platform
+cd ~/my-platform
 ```
 
 Vérifier les prérequis :
 
 ```bash
-platform-bootstrap -n agentic-platform doctor
+platform-bootstrap -n my-platform doctor
 ```
 
 Créer l'environnement :
 
 ```bash
-platform-bootstrap -n agentic-platform bootstrap
+platform-bootstrap -n my-platform bootstrap
 ```
 
 Vérifier :
 
 ```bash
-platform-bootstrap -n agentic-platform verify
+platform-bootstrap -n my-platform verify
 ```
 
 Une installation correcte se termine par :
 
 ```text
 Bootstrap READY.
+```
+
+### Tip : utiliser le nom du repository comme nom d'instance
+
+Pour garder une correspondance simple entre le projet consommateur, le cluster Kind, le registry et le state local, il est recommandé d'utiliser le nom du dossier du projet comme nom d'instance.
+
+Depuis la racine du projet :
+
+```bash
+platform-bootstrap -n "$(basename "$PWD")" bootstrap
+```
+
+Dans un repository `my-platform`, cette commande revient à exécuter :
+
+```bash
+platform-bootstrap -n my-platform bootstrap
+```
+
+Cette convention facilite notamment l'identification des ressources locales :
+
+```text
+repository      : my-platform
+cluster Kind    : my-platform
+registry        : my-platform-registry
+registry DNS    : registry.my-platform.local
+state           : ~/.local/state/platform-bootstrap/my-platform/
 ```
 
 ## 4. Utiliser des ports alternatifs
@@ -150,7 +176,7 @@ Si plusieurs instances doivent tourner simultanément :
 KIND_HTTP_PORT=8080 \
 KIND_HTTPS_PORT=8443 \
 REGISTRY_PORT=5001 \
-platform-bootstrap -n another-platform bootstrap
+platform-bootstrap -n my-platform bootstrap
 ```
 
 Le state de chaque instance est isolé sous :
@@ -181,7 +207,7 @@ Exemple :
 
 ```yaml
 spec:
-  repository: registry.agentic-platform.local:5000/agentic-platform/crossplane-model-serving
+  repository: registry.my-platform.local:5000/my-platform/crossplane-model-serving
 ```
 
 Le repository utilisé au build et au push doit rester cohérent, car il influence notamment les références des Functions embarquées.
@@ -248,15 +274,15 @@ Le cluster Kind et Crossplane utilisent la CA générée et gérée par `platfor
 
 ```bash
 curl \
-  --cacert ~/.local/state/platform-bootstrap/agentic-platform/registry/certs/domain.crt \
-  https://registry.agentic-platform.local:5000/v2/_catalog
+  --cacert ~/.local/state/platform-bootstrap/my-platform/registry/certs/domain.crt \
+  https://registry.my-platform.local:5000/v2/_catalog
 ```
 
 Exemple de repositories :
 
 ```text
-agentic-platform/crossplane-model-serving
-agentic-platform/crossplane-model-serving_compose-vllm
+my-platform/crossplane-model-serving
+my-platform/crossplane-model-serving_compose-vllm
 ```
 
 ## 9. Installer la Configuration dans Crossplane
@@ -269,19 +295,19 @@ kind: Configuration
 metadata:
   name: crossplane-model-serving
 spec:
-  package: registry.agentic-platform.local:5000/agentic-platform/crossplane-model-serving:v0.1.2
+  package: registry.my-platform.local:5000/my-platform/crossplane-model-serving:v0.1.2
 ```
 
 Puis :
 
 ```bash
-kubectl --context kind-agentic-platform apply -f configuration.yaml
+kubectl --context kind-my-platform apply -f configuration.yaml
 ```
 
 Suivre l'installation :
 
 ```bash
-kubectl --context kind-agentic-platform \
+kubectl --context kind-my-platform \
   get configurations.pkg.crossplane.io -w
 ```
 
@@ -297,14 +323,14 @@ True        True
 ### Configurations
 
 ```bash
-kubectl --context kind-agentic-platform \
+kubectl --context kind-my-platform \
   get configurations.pkg.crossplane.io
 ```
 
 ### Functions
 
 ```bash
-kubectl --context kind-agentic-platform \
+kubectl --context kind-my-platform \
   get functions.pkg.crossplane.io
 ```
 
@@ -318,7 +344,7 @@ HEALTHY=True
 ### XRD
 
 ```bash
-kubectl --context kind-agentic-platform get xrd
+kubectl --context kind-my-platform get xrd
 ```
 
 Les XRD doivent être établies :
@@ -330,7 +356,7 @@ ESTABLISHED=True
 ### Compositions
 
 ```bash
-kubectl --context kind-agentic-platform get compositions
+kubectl --context kind-my-platform get compositions
 ```
 
 Vérifier que la Composition cible référence le bon `XR-KIND` et la bonne `XR-APIVERSION`.
@@ -338,7 +364,7 @@ Vérifier que la Composition cible référence le bon `XR-KIND` et la bonne `XR-
 ### Conditions détaillées
 
 ```bash
-kubectl --context kind-agentic-platform \
+kubectl --context kind-my-platform \
   get configuration.pkg.crossplane.io <name> \
   -o jsonpath='{range .status.conditions[*]}{.type}{" => "}{.status}{" | "}{.reason}{" | "}{.message}{"\n"}{end}'
 ```
@@ -348,10 +374,10 @@ kubectl --context kind-agentic-platform \
 Pour isoler les problèmes registry/containerd de Crossplane :
 
 ```bash
-docker exec agentic-platform-worker2 \
+docker exec my-platform-worker2 \
   ctr -n k8s.io images pull \
   --hosts-dir /etc/containerd/certs.d \
-  registry.agentic-platform.local:5000/agentic-platform/crossplane-model-serving_compose-vllm:v0.1.2
+  registry.my-platform.local:5000/my-platform/crossplane-model-serving_compose-vllm:v0.1.2
 ```
 
 Ce test permet de diagnostiquer :
@@ -369,7 +395,7 @@ Une fois la Configuration installée et saine, créer une XR conforme à l'XRD e
 Exemple `ModelServing` :
 
 ```yaml
-apiVersion: serving.agentic-platform.io/v1alpha1
+apiVersion: serving.my-platform.io/v1alpha1
 kind: ModelServing
 metadata:
   name: qwen-test
@@ -381,21 +407,21 @@ spec:
 Application :
 
 ```bash
-kubectl --context kind-agentic-platform \
+kubectl --context kind-my-platform \
   apply -f model-serving.yaml
 ```
 
 Suivre la XR :
 
 ```bash
-kubectl --context kind-agentic-platform \
+kubectl --context kind-my-platform \
   get modelserving qwen-test
 ```
 
 Conditions détaillées :
 
 ```bash
-kubectl --context kind-agentic-platform \
+kubectl --context kind-my-platform \
   get modelserving qwen-test \
   -o jsonpath='{range .status.conditions[*]}{.type}{" => "}{.status}{" | "}{.reason}{" | "}{.message}{"\n"}{end}'
 ```
@@ -436,26 +462,26 @@ tests fonctionnels de la plateforme IA
 Après création de la XR :
 
 ```bash
-kubectl --context kind-agentic-platform get modelserving
+kubectl --context kind-my-platform get modelserving
 ```
 
 Puis selon la Composition :
 
 ```bash
-kubectl --context kind-agentic-platform get deployments
-kubectl --context kind-agentic-platform get services
+kubectl --context kind-my-platform get deployments
+kubectl --context kind-my-platform get services
 ```
 
 Pour suivre la réconciliation :
 
 ```bash
-kubectl --context kind-agentic-platform describe modelserving <name>
+kubectl --context kind-my-platform describe modelserving <name>
 ```
 
 Logs Crossplane :
 
 ```bash
-kubectl --context kind-agentic-platform \
+kubectl --context kind-my-platform \
   logs -n crossplane-system deployment/crossplane
 ```
 
@@ -499,7 +525,7 @@ curl http://localhost:8000/v1/chat/completions \
     "messages": [
       {
         "role": "user",
-        "content": "Réponds uniquement par : agentic-platform-ok"
+        "content": "Réponds uniquement par : my-platform-ok"
       }
     ],
     "temperature": 0,
@@ -532,9 +558,9 @@ test fonctionnel
 Pour repartir d'un environnement vide :
 
 ```bash
-platform-bootstrap -n agentic-platform destroy
-platform-bootstrap -n agentic-platform bootstrap
-platform-bootstrap -n agentic-platform verify
+platform-bootstrap -n my-platform destroy
+platform-bootstrap -n my-platform bootstrap
+platform-bootstrap -n my-platform verify
 ```
 
 Les tests unitaires doivent rester rapides et indépendants du cluster.
@@ -555,19 +581,35 @@ resources:
     nvidia.com/gpu: 1
 ```
 
+Cette configuration indique que le pod va réellement consommer un GPU NVIDIA.
+
 Le worker GPU porte également le label :
 
 ```text
 nvidia.com/gpu.present=true
 ```
 
-Ce label peut être utilisé avec un `nodeSelector` ou une affinité de node lorsqu'un placement explicite sur le worker GPU est nécessaire.
+Ce label peut être utilisé pour demander explicitement à Kubernetes de placer le pod sur un node GPU :
 
 ```yaml
 spec:
   nodeSelector:
     nvidia.com/gpu.present: "true"
+
+  containers:
+    - name: app
+      image: mon-image
+      resources:
+        limits:
+          nvidia.com/gpu: 1
 ```
+
+Dans cet exemple :
+
+- `nodeSelector` indique sur quel type de node le pod doit être exécuté ;
+- `nvidia.com/gpu: 1` indique que le pod consomme réellement un GPU.
+
+La demande de ressource GPU suffit déjà à empêcher le pod d'être planifié sur un node qui n'expose aucun GPU. Le `nodeSelector` permet surtout de rendre le placement explicite ou d'ajouter une contrainte supplémentaire.
 
 Le bootstrap fournit :
 
