@@ -67,6 +67,37 @@ fi
 COMMAND="$1"
 shift
 
+# -----------------------------------------------------------------------------
+# Chargement de la configuration persistée de l'instance
+#
+# Ordre de précédence :
+#   1. variables explicitement fournies dans l'environnement
+#   2. instance.env
+#   3. valeurs par défaut chargées ensuite par le core
+# -----------------------------------------------------------------------------
+
+STATE_ROOT="${PLATFORM_BOOTSTRAP_STATE_ROOT:-${XDG_STATE_HOME:-${HOME}/.local/state}/platform-bootstrap}"
+
+if [[ -n "${PLATFORM_BOOTSTRAP_NAME:-}" ]]; then
+  INSTANCE_CONFIG="${STATE_ROOT}/${PLATFORM_BOOTSTRAP_NAME}/instance.env"
+
+  if [[ -f "${INSTANCE_CONFIG}" ]]; then
+    while IFS='=' read -r key value; do
+      [[ -z "${key}" || "${key}" == \#* ]] && continue
+
+      # Une variable explicitement définie reste prioritaire.
+      if [[ -z "${!key+x}" ]]; then
+        printf -v "${key}" '%s' "${value}"
+        export "${key}"
+      fi
+    done < "${INSTANCE_CONFIG}"
+  fi
+fi
+
+# -----------------------------------------------------------------------------
+# Dispatch
+# -----------------------------------------------------------------------------
+
 case "${COMMAND}" in
   list)
     exec make \
@@ -88,26 +119,3 @@ case "${COMMAND}" in
       "${COMMAND}"
     ;;
 esac
-
-STATE_ROOT="${PLATFORM_BOOTSTRAP_STATE_ROOT:-${XDG_STATE_HOME:-${HOME}/.local/state}/platform-bootstrap}"
-
-if [[ -n "${PLATFORM_BOOTSTRAP_NAME:-}" ]]; then
-  INSTANCE_CONFIG="${STATE_ROOT}/${PLATFORM_BOOTSTRAP_NAME}/instance.env"
-
-  if [[ -f "${INSTANCE_CONFIG}" ]]; then
-    while IFS='=' read -r key value; do
-      [[ -z "${key}" || "${key}" == \#* ]] && continue
-
-      # Une variable explicitement définie reste prioritaire.
-      if [[ -z "${!key+x}" ]]; then
-        printf -v "${key}" '%s' "${value}"
-        export "${key}"
-      fi
-    done < "${INSTANCE_CONFIG}"
-  fi
-fi
-
-exec make \
-  --no-print-directory \
-  -C "${BOOTSTRAP_HOME}" \
-  "$@"
