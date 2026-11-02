@@ -30,6 +30,17 @@ nodes:
 
   - role: worker
     image: __AI_KIND_NODE_IMAGE__
+    labels:
+      nvidia.com/gpu.present: "true"
     extraMounts:
+      # Déclenche l'injection NVIDIA du runtime Docker hôte dans le node Kind.
+      - hostPath: /dev/null
+        containerPath: /var/run/nvidia-container-devices/all
+
+      # Rend la spec CDI NVIDIA de l'hôte visible dans le worker.
+      - hostPath: /etc/cdi
+        containerPath: /etc/cdi
+        readOnly: true
+
       - hostPath: __KIND_STORAGE__/gpu-worker
         containerPath: /var/local-path-provisioner

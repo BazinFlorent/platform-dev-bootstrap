@@ -6,7 +6,8 @@ SCRIPTS_DIR := scripts
 	    build-node-image \
 		kind-config \
 		kind-create \
-		configure-containerd
+		configure-containerd \
+		install-device-plugin
 
 doctor:
 	@$(BASH) $(SCRIPTS_DIR)/doctor.sh
@@ -22,3 +23,6 @@ kind-create: kind-config
 
 configure-containerd:
 	@$(BASH) $(SCRIPTS_DIR)/configure-containerd.sh
+
+install-device-plugin:
+	@$(BASH) $(SCRIPTS_DIR)/install-device-plugin.sh
