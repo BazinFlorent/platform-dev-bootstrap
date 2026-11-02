@@ -7,7 +7,8 @@ SCRIPTS_DIR := scripts
 		kind-config \
 		kind-create \
 		configure-containerd \
-		install-device-plugin
+		install-device-plugin \
+		verify
 
 doctor:
 	@$(BASH) $(SCRIPTS_DIR)/doctor.sh
@@ -26,3 +27,6 @@ configure-containerd:
 
 install-device-plugin:
 	@$(BASH) $(SCRIPTS_DIR)/install-device-plugin.sh
+
+verify:
+	@$(BASH) $(SCRIPTS_DIR)/verify.sh

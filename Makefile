@@ -29,7 +29,8 @@ CORE_DIR := $(CURDIR)/core
 	kind-ai-config \
 	kind-ai-create \
 	configure-ai-containerd \
-	install-ai-device-plugin
+	install-ai-device-plugin \
+	verify-ai
 
 doctor:
 	@$(MAKE) --no-print-directory -C $(CORE_DIR) doctor
@@ -105,3 +106,6 @@ configure-ai-containerd:
 
 install-ai-device-plugin:
 	@$(MAKE) --no-print-directory -C ai install-device-plugin
+
+verify-ai:
+	@$(MAKE) --no-print-directory -C ai verify
