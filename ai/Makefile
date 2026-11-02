@@ -8,7 +8,8 @@ SCRIPTS_DIR := scripts
 		kind-create \
 		configure-containerd \
 		install-device-plugin \
-		verify
+		verify \
+		test
 
 doctor:
 	@$(BASH) $(SCRIPTS_DIR)/doctor.sh
@@ -30,3 +31,6 @@ install-device-plugin:
 
 verify:
 	@$(BASH) $(SCRIPTS_DIR)/verify.sh
+
+test:
+	@$(BASH) $(SCRIPTS_DIR)/test.sh
