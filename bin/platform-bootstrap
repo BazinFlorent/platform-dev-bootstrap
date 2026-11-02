@@ -16,11 +16,27 @@ Options:
   -n, --name <name>   Nom logique de l'instance de bootstrap
   -h, --help          Affiche cette aide
 
+Main commands:
+  list                Liste les instances connues
+  doctor              Vérifie les prérequis du bootstrap standard
+  bootstrap           Crée une instance standard
+  verify              Vérifie une instance standard
+  destroy             Supprime une instance et ses ressources associées
+
+AI commands:
+  doctor-ai            Vérifie les prérequis GPU
+  bootstrap-ai         Crée une instance avec support GPU NVIDIA
+  verify-ai            Vérifie l'exposition du GPU dans Kubernetes
+  test-ai              Lance un workload Kubernetes consommant un GPU
+
 Examples:
   platform-bootstrap list
   platform-bootstrap doctor
   platform-bootstrap -n my-platform bootstrap
-  platform-bootstrap --name my-platform verify
+  platform-bootstrap -n my-platform bootstrap-ai
+  platform-bootstrap -n my-platform verify
+  platform-bootstrap -n my-platform verify-ai
+  platform-bootstrap -n my-platform test-ai
   platform-bootstrap -n my-platform destroy
 EOF
 }
