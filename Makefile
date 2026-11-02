@@ -25,7 +25,10 @@ CORE_DIR := $(CURDIR)/core
 	instance-save \
 	list \
 	doctor-ai \
-	build-ai-node-image
+	build-ai-node-image \
+	kind-ai-config \
+	kind-ai-create \
+	configure-ai-containerd
 
 doctor:
 	@$(MAKE) --no-print-directory -C $(CORE_DIR) doctor
@@ -89,3 +92,12 @@ doctor-ai:
 
 build-ai-node-image:
 	@$(MAKE) --no-print-directory -C ai build-node-image
+
+kind-ai-config:
+	@$(MAKE) --no-print-directory -C ai kind-config
+
+kind-ai-create:
+	@$(MAKE) --no-print-directory -C ai kind-create
+
+configure-ai-containerd:
+	@$(MAKE) --no-print-directory -C ai configure-containerd
