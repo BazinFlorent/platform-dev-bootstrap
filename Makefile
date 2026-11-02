@@ -23,7 +23,8 @@ CORE_DIR := $(CURDIR)/core
 	crossplane-status \
 	crossplane-uninstall \
 	instance-save \
-	list
+	list \
+	doctor-ai
 
 doctor:
 	@$(MAKE) --no-print-directory -C $(CORE_DIR) doctor
@@ -81,3 +82,6 @@ instance-save:
 
 list:
 	@$(MAKE) --no-print-directory -C $(CORE_DIR) list LIST_ARGS="$(LIST_ARGS)"
+
+doctor-ai:
+	@$(MAKE) --no-print-directory -C ai doctor
