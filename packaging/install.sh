@@ -2,7 +2,22 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+if [[ -f "${SCRIPT_DIR}/Makefile" && -d "${SCRIPT_DIR}/core" ]]; then
+  # Package distribué : install.sh est à la racine.
+  PROJECT_ROOT="${SCRIPT_DIR}"
+else
+  # Repository de développement : install.sh est dans packaging/.
+  PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+fi
+
+if [[ -f "${PROJECT_ROOT}/uninstall.sh" ]]; then
+  # Package distribué.
+  UNINSTALL_SOURCE="${PROJECT_ROOT}/uninstall.sh"
+else
+  # Repository de développement.
+  UNINSTALL_SOURCE="${PROJECT_ROOT}/packaging/uninstall.sh"
+fi
 
 PREFIX="${PLATFORM_BOOTSTRAP_INSTALL_PREFIX:-${HOME}/.local}"
 
@@ -31,6 +46,9 @@ cp -R "${PROJECT_ROOT}/ai" "${INSTALL_DIR}/"
 cp -R "${PROJECT_ROOT}/completion" "${INSTALL_DIR}/"
 cp -R "${PROJECT_ROOT}/docs" "${INSTALL_DIR}/"
 
+cp "${UNINSTALL_SOURCE}" "${INSTALL_DIR}/uninstall.sh"
+chmod +x "${INSTALL_DIR}/uninstall.sh"
+
 echo "==> Installation de la commande"
 
 rm -f "${BIN_DIR}/platform-bootstrap"
@@ -42,6 +60,17 @@ EOF
 
 chmod +x "${BIN_DIR}/platform-bootstrap"
 chmod +x "${INSTALL_DIR}/bin/platform-bootstrap"
+
+echo "==> Installation de la commande de désinstallation"
+
+rm -f "${BIN_DIR}/platform-bootstrap-uninstall"
+
+cat > "${BIN_DIR}/platform-bootstrap-uninstall" <<EOF
+#!/usr/bin/env bash
+exec "${INSTALL_DIR}/uninstall.sh" "\$@"
+EOF
+
+chmod +x "${BIN_DIR}/platform-bootstrap-uninstall"
 
 echo "==> Installation de l'autocomplétion Bash"
 
@@ -57,3 +86,6 @@ echo "  ${BIN_DIR}/platform-bootstrap"
 echo
 echo "Vérification :"
 echo "  platform-bootstrap --help"
+echo
+echo "Désinstallation :"
+echo "  platform-bootstrap-uninstall"

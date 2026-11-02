@@ -4,6 +4,11 @@
 
 CORE_DIR := $(CURDIR)/core
 
+DIST_DIR := $(CURDIR)/dist
+VERSION ?= dev
+PACKAGE_NAME := platform-bootstrap-$(VERSION)-linux
+PACKAGE_DIR := $(DIST_DIR)/$(PACKAGE_NAME)
+
 .PHONY: \
 	doctor \
 	check-ports \
@@ -33,7 +38,8 @@ CORE_DIR := $(CURDIR)/core
 	verify-ai \
 	test-ai \
 	bootstrap-ai \
-	remove-ai-node-image
+	remove-ai-node-image \
+	package
 
 doctor:
 	@$(MAKE) --no-print-directory -C $(CORE_DIR) doctor
@@ -139,3 +145,28 @@ bootstrap-ai: \
 
 remove-ai-node-image:
 	@$(MAKE) --no-print-directory -C ai remove-node-image
+
+package:
+	@rm -rf "$(PACKAGE_DIR)"
+	@mkdir -p "$(PACKAGE_DIR)"
+
+	@cp Makefile README.md "$(PACKAGE_DIR)/"
+	@cp -R bin core ai completion docs "$(PACKAGE_DIR)/"
+
+	@cp packaging/install.sh "$(PACKAGE_DIR)/install.sh"
+	@cp packaging/uninstall.sh "$(PACKAGE_DIR)/uninstall.sh"
+
+	@chmod +x "$(PACKAGE_DIR)/install.sh"
+	@chmod +x "$(PACKAGE_DIR)/uninstall.sh"
+	@chmod +x "$(PACKAGE_DIR)/bin/platform-bootstrap"
+
+	@tar \
+		-C "$(DIST_DIR)" \
+		-czf "$(DIST_DIR)/$(PACKAGE_NAME).tar.gz" \
+		"$(PACKAGE_NAME)"
+
+	@rm -rf "$(PACKAGE_DIR)"
+
+	@echo
+	@echo "Package généré :"
+	@echo "  $(DIST_DIR)/$(PACKAGE_NAME).tar.gz"
