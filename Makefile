@@ -31,7 +31,8 @@ CORE_DIR := $(CURDIR)/core
 	configure-ai-containerd \
 	install-ai-device-plugin \
 	verify-ai \
-	test-ai
+	test-ai \
+	bootstrap-ai
 
 doctor:
 	@$(MAKE) --no-print-directory -C $(CORE_DIR) doctor
@@ -109,3 +110,23 @@ install-ai-device-plugin:
 	@$(MAKE) --no-print-directory -C ai install-device-plugin
 
 verify-ai:
+	@$(MAKE) --no-print-directory -C ai verify
+
+test-ai:
+	@$(MAKE) --no-print-directory -C ai test
+
+bootstrap-ai: \
+	doctor \
+	doctor-ai \
+	instance-save \
+	build-ai-node-image \
+	kind-ai-create \
+	configure-ai-containerd \
+	registry-create \
+	registry-configure-kind \
+	crossplane-install \
+	crossplane-verify \
+	install-ai-device-plugin \
+	verify-ai
+	@echo
+	@echo "Bootstrap local AI terminé."
