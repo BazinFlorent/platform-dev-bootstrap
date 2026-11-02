@@ -80,4 +80,4 @@ instance-save:
 	@$(MAKE) --no-print-directory -C $(CORE_DIR) instance-save
 
 list:
-	@$(MAKE) --no-print-directory -C $(CORE_DIR) list
+	@$(MAKE) --no-print-directory -C $(CORE_DIR) list LIST_ARGS="$(LIST_ARGS)"

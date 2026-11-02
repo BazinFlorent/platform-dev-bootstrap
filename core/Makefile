@@ -180,4 +180,4 @@ destroy:
 # -----------------------------------------------------------------------------
 
 list:
-	@$(BASH) $(SCRIPTS_DIR)/list.sh
+	@$(BASH) $(SCRIPTS_DIR)/list.sh $(LIST_ARGS)
