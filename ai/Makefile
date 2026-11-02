@@ -9,7 +9,8 @@ SCRIPTS_DIR := scripts
 		configure-containerd \
 		install-device-plugin \
 		verify \
-		test
+		test \
+		remove-node-image
 
 doctor:
 	@$(BASH) $(SCRIPTS_DIR)/doctor.sh
@@ -34,3 +35,6 @@ verify:
 
 test:
 	@$(BASH) $(SCRIPTS_DIR)/test.sh
+
+remove-node-image:
+	@$(BASH) $(SCRIPTS_DIR)/remove-node-image.sh

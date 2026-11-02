@@ -32,7 +32,8 @@ CORE_DIR := $(CURDIR)/core
 	install-ai-device-plugin \
 	verify-ai \
 	test-ai \
-	bootstrap-ai
+	bootstrap-ai \
+	remove-ai-node-image
 
 doctor:
 	@$(MAKE) --no-print-directory -C $(CORE_DIR) doctor
@@ -47,7 +48,11 @@ verify:
 	@$(MAKE) --no-print-directory -C $(CORE_DIR) verify
 
 destroy:
-	@$(MAKE) --no-print-directory -C $(CORE_DIR) destroy
+	@PROFILE="$${PLATFORM_BOOTSTRAP_PROFILE:-core}"; \
+	$(MAKE) --no-print-directory -C $(CORE_DIR) destroy; \
+	if [ "$${PROFILE}" = "ai" ]; then \
+		$(MAKE) --no-print-directory -C ai remove-node-image; \
+	fi
 
 kind-config:
 	@$(MAKE) --no-print-directory -C $(CORE_DIR) kind-config
@@ -115,6 +120,7 @@ verify-ai:
 test-ai:
 	@$(MAKE) --no-print-directory -C ai test
 
+bootstrap-ai: export PLATFORM_BOOTSTRAP_PROFILE := ai
 bootstrap-ai: \
 	doctor \
 	doctor-ai \
@@ -130,3 +136,6 @@ bootstrap-ai: \
 	verify-ai
 	@echo
 	@echo "Bootstrap local AI terminé."
+
+remove-ai-node-image:
+	@$(MAKE) --no-print-directory -C ai remove-node-image
