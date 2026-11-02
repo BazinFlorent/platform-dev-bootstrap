@@ -87,19 +87,35 @@ fi
 
 echo "  [OK] NVIDIA Device Plugin prêt : ${READY}/${DESIRED}"
 
-GPU_CAPACITY="$(
-  kubectl \
-    --context "${KIND_CONTEXT}" \
-    get node "${GPU_NODE}" \
-    -o jsonpath='{.status.capacity.nvidia\.com/gpu}'
-)"
+echo "==> Attente de l'exposition du GPU dans Kubernetes"
 
-GPU_ALLOCATABLE="$(
-  kubectl \
-    --context "${KIND_CONTEXT}" \
-    get node "${GPU_NODE}" \
-    -o jsonpath='{.status.allocatable.nvidia\.com/gpu}'
-)"
+GPU_CAPACITY=""
+GPU_ALLOCATABLE=""
+
+for _ in {1..30}; do
+  GPU_CAPACITY="$(
+    kubectl \
+      --context "${KIND_CONTEXT}" \
+      get node "${GPU_NODE}" \
+      -o jsonpath='{.status.capacity.nvidia\.com/gpu}' \
+      2>/dev/null || true
+  )"
+
+  GPU_ALLOCATABLE="$(
+    kubectl \
+      --context "${KIND_CONTEXT}" \
+      get node "${GPU_NODE}" \
+      -o jsonpath='{.status.allocatable.nvidia\.com/gpu}' \
+      2>/dev/null || true
+  )"
+
+  if [[ -n "${GPU_CAPACITY}" && "${GPU_CAPACITY}" != "0" \
+     && -n "${GPU_ALLOCATABLE}" && "${GPU_ALLOCATABLE}" != "0" ]]; then
+    break
+  fi
+
+  sleep 2
+done
 
 if [[ -z "${GPU_CAPACITY}" || "${GPU_CAPACITY}" == "0" ]]; then
   echo "[ERROR] Aucune capacité GPU exposée par Kubernetes." >&2
