@@ -28,7 +28,8 @@ echo "    Node GPU : ${GPU_NODE}"
 docker exec "${GPU_NODE}" \
   nvidia-ctk runtime configure \
     --runtime=containerd \
-    --set-as-default
+    --set-as-default \
+    --cdi.enabled
 
 docker exec "${GPU_NODE}" systemctl restart containerd
 
