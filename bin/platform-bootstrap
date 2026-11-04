@@ -17,11 +17,16 @@ Options:
       --http-port <port>     Port HTTP du cluster Kind
       --https-port <port>    Port HTTPS du cluster Kind
       --registry-port <port> Port du registry OCI local
+      --single-node          Crée un cluster Kind mononœud
   -h, --help                 Affiche cette aide
 
-Port options:
+Bootstrap options:
   Les options --http-port, --https-port et --registry-port
   s'appliquent uniquement aux commandes bootstrap et bootstrap-ai.
+
+  L'option --single-node s'applique uniquement à la commande bootstrap.
+  Elle crée un cluster Kind avec un unique control-plane servant également
+  de worker.
 
 Main commands:
   list                       Liste les instances connues
@@ -44,6 +49,19 @@ Examples:
 
   platform-bootstrap \
     -n my-platform \
+    --single-node \
+    bootstrap
+
+  platform-bootstrap \
+    -n my-platform \
+    --http-port 8080 \
+    --https-port 8443 \
+    --registry-port 5001 \
+    bootstrap
+
+  platform-bootstrap \
+    -n my-platform \
+    --single-node \
     --http-port 8080 \
     --https-port 8443 \
     --registry-port 5001 \
@@ -76,6 +94,7 @@ validate_port() {
 }
 
 PORT_OPTIONS_USED=false
+SINGLE_NODE_USED=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -128,6 +147,12 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
 
+    --single-node)
+      export KIND_TOPOLOGY="single-node"
+      SINGLE_NODE_USED=true
+      shift
+      ;;
+
     -h|--help)
       usage
       exit 0
@@ -168,6 +193,12 @@ if [[ "${PORT_OPTIONS_USED}" == "true" ]]; then
       exit 1
       ;;
   esac
+fi
+
+# La topologie single-node est uniquement supportée par le bootstrap core.
+if [[ "${SINGLE_NODE_USED}" == "true" && "${COMMAND}" != "bootstrap" ]]; then
+  echo "ERROR: --single-node is only supported by bootstrap" >&2
+  exit 1
 fi
 
 # -----------------------------------------------------------------------------

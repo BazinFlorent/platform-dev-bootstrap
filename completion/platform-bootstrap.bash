@@ -39,6 +39,7 @@ _platform_bootstrap_completion() {
     --http-port
     --https-port
     --registry-port
+    --single-node
     -h
     --help
   "

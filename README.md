@@ -155,6 +155,21 @@ platform-bootstrap -n my-platform bootstrap
 platform-bootstrap -n my-platform verify
 ```
 
+### Bootstrap mononœud
+
+Pour les configurations matérielles plus limitées, le bootstrap `core` peut créer un cluster Kind avec un unique `control-plane` servant également de worker :
+
+```bash
+platform-bootstrap \
+  -n my-platform \
+  --single-node \
+  bootstrap
+```
+
+Le taint `NoSchedule` du control-plane est alors retiré afin de permettre l'exécution des workloads sur ce nœud.
+
+Le mode `single-node` concerne uniquement le bootstrap `core`.
+
 ### Bootstrap AI
 
 Pour créer une instance avec support GPU NVIDIA :
@@ -176,6 +191,8 @@ nvidia.com/gpu: 1
 ```
 
 et en exécutant `nvidia-smi` depuis le pod.
+
+Le profil `ai` conserve sa topologie dédiée avec worker GPU et ne supporte pas l'option `--single-node`.
 
 ### Suppression
 
@@ -232,6 +249,91 @@ Le profil `ai` correspond à un bootstrap intégrant le support GPU NVIDIA.
 
 Le profil est notamment utilisé lors du cycle de vie de l'instance afin d'appliquer les opérations de nettoyage spécifiques à l'extension AI.
 
+## Topologie Kind
+
+Le bootstrap `core` supporte deux topologies Kind :
+
+```text
+standard
+single-node
+```
+
+### Topologie standard
+
+La topologie par défaut est :
+
+```text
+KIND_TOPOLOGY=standard
+```
+
+Elle crée un cluster composé de :
+
+```text
+1 control-plane
+2 workers
+```
+
+Le control-plane conserve son taint Kubernetes `NoSchedule` et les workloads sont exécutés sur les workers.
+
+Une création standard ne nécessite aucun flag particulier :
+
+```bash
+platform-bootstrap \
+  -n my-platform \
+  bootstrap
+```
+
+### Topologie single-node
+
+Pour les configurations matérielles plus limitées :
+
+```bash
+platform-bootstrap \
+  -n my-platform \
+  --single-node \
+  bootstrap
+```
+
+La topologie contient alors uniquement :
+
+```text
+1 control-plane
+```
+
+Le taint `node-role.kubernetes.io/control-plane:NoSchedule` est retiré lors de la création afin que le control-plane puisse également exécuter les workloads.
+
+La configuration persistée contient :
+
+```text
+KIND_TOPOLOGY=single-node
+```
+
+Le mode `single-node` est uniquement disponible avec la commande `bootstrap`.
+
+Il n'est pas supporté par `bootstrap-ai`, qui conserve sa topologie dédiée avec worker GPU.
+
+### Consultation de la topologie
+
+La topologie d'une instance peut être consultée avec :
+
+```bash
+platform-bootstrap list --detail
+```
+
+Exemple :
+
+```text
+Instance       : my-platform
+Profile        : core
+Topology       : single-node
+Kind cluster   : my-platform
+Kind context   : kind-my-platform
+Kind status    : present
+...
+```
+
+Pour assurer la compatibilité avec les instances créées avant l'introduction de `KIND_TOPOLOGY`, une instance ne possédant pas cette propriété dans son état est considérée comme utilisant la topologie `standard`.
+
 ## Ports et configuration
 
 Les ports peuvent être fournis directement à la CLI lors du bootstrap :
@@ -245,7 +347,19 @@ platform-bootstrap \
   bootstrap
 ```
 
-Les mêmes options sont disponibles avec :
+Les options de ports peuvent être combinées avec `--single-node` :
+
+```bash
+platform-bootstrap \
+  -n my-platform \
+  --single-node \
+  --http-port 8080 \
+  --https-port 8443 \
+  --registry-port 5001 \
+  bootstrap
+```
+
+Les mêmes options de ports sont disponibles avec le bootstrap AI :
 
 ```bash
 platform-bootstrap \
@@ -345,13 +459,20 @@ Le fichier `instance.env` conserve les paramètres nécessaires à la réutilisa
 
 ```text
 PLATFORM_BOOTSTRAP_NAME=my-platform
-PLATFORM_BOOTSTRAP_PROFILE=ai
+PLATFORM_BOOTSTRAP_PROFILE=core
 KIND_CLUSTER=my-platform
+KIND_TOPOLOGY=single-node
 KIND_HTTP_PORT=8080
 KIND_HTTPS_PORT=8443
 REGISTRY_NAME=my-platform-registry
 REGISTRY_HOST=registry.my-platform.local
 REGISTRY_PORT=5001
+```
+
+Une instance standard contient :
+
+```text
+KIND_TOPOLOGY=standard
 ```
 
 ## Résolution DNS locale
@@ -380,9 +501,12 @@ Cela permet de recréer le container registry sans provoquer une rotation de cer
 
 ## Commandes principales
 
+- `platform-bootstrap list` — liste les instances connues.
+- `platform-bootstrap list --detail` — affiche la configuration et l'état détaillé des instances.
 - `platform-bootstrap -n <instance> doctor` — vérifie les prérequis nécessaires au bootstrap standard.
 - `platform-bootstrap -n <instance> check-ports` — vérifie que les ports requis par l'instance sont disponibles.
 - `platform-bootstrap -n <instance> bootstrap` — crée et configure un environnement local standard.
+- `platform-bootstrap -n <instance> --single-node bootstrap` — crée un environnement local mononœud.
 - `platform-bootstrap -n <instance> verify` — vérifie l'état du cluster, du registry et de Crossplane.
 - `platform-bootstrap -n <instance> bootstrap-ai` — crée un environnement local avec support GPU NVIDIA.
 - `platform-bootstrap -n <instance> verify-ai` — vérifie l'exposition du GPU dans Kubernetes.
@@ -493,5 +617,6 @@ Le package est conçu pour être autonome : après `./install.sh`, le dossier ex
 ## Documentation
 
 - [Documentation du socle core](core/README.md)
+- [Documentation Kind](core/kind/README.md)
 - [Documentation du socle ai](ai/README.md)
 - [Workflow de développement local](docs/developpement-local.md)
