@@ -77,7 +77,9 @@ fi
 for instance_file in "${INSTANCE_FILES[@]}"; do
   unset \
     PLATFORM_BOOTSTRAP_NAME \
+    PLATFORM_BOOTSTRAP_PROFILE \
     KIND_CLUSTER \
+    KIND_TOPOLOGY \
     KIND_HTTP_PORT \
     KIND_HTTPS_PORT \
     REGISTRY_NAME \
@@ -85,6 +87,9 @@ for instance_file in "${INSTANCE_FILES[@]}"; do
     REGISTRY_PORT
 
   source "${instance_file}"
+
+  PLATFORM_BOOTSTRAP_PROFILE="${PLATFORM_BOOTSTRAP_PROFILE:-core}"
+  KIND_TOPOLOGY="${KIND_TOPOLOGY:-standard}"
 
   kind_status="unknown"
 
@@ -149,6 +154,8 @@ for instance_file in "${INSTANCE_FILES[@]}"; do
   fi
 
   echo "Instance       : ${PLATFORM_BOOTSTRAP_NAME}"
+  echo "Profile        : ${PLATFORM_BOOTSTRAP_PROFILE}"
+  echo "Topology       : ${KIND_TOPOLOGY}"
   echo "Kind cluster   : ${KIND_CLUSTER}"
   echo "Kind context   : kind-${KIND_CLUSTER}"
   echo "Kind status    : ${kind_status}"
