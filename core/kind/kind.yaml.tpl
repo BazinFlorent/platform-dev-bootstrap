@@ -22,12 +22,4 @@ nodes:
         listenAddress: "127.0.0.1"
         protocol: TCP
 
-  - role: worker
-    extraMounts:
-      - hostPath: __KIND_STORAGE__/worker-1
-        containerPath: /var/local-path-provisioner
-
-  - role: worker
-    extraMounts:
-      - hostPath: __KIND_STORAGE__/worker-2
-        containerPath: /var/local-path-provisioner
+__KIND_WORKERS__
